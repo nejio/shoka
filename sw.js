@@ -2,7 +2,7 @@
  * デプロイのたびに VERSION を index.html の bundle.js?v=N と同じ値に上げること。
  * (VERSIONが変わると新キャッシュを作成し、旧キャッシュは activate で削除される)
  */
-const VERSION = "v4";
+const VERSION = "v6";
 const CACHE = `shoka-${VERSION}`;
 
 const SHELL = [

@@ -9,19 +9,47 @@
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="書架" />
   <style>
+    /* ===== テーマ(CSS変数) ===== */
+    :root, [data-theme="light"] {
+      --c-paper: #F2F2ED; --c-ink: #23272C; --c-sub: #6B7076;
+      --c-indigo: #31465F; --c-gold: #B58B2A; --c-line: #D8D8D0;
+      --c-shelf: #9C8668; --c-card: #FAFAF7; --c-empty: #E5E5DD;
+      --c-field: #FFFFFF;
+    }
+    [data-theme="dark"] {
+      --c-paper: #17191C; --c-ink: #E6E3DC; --c-sub: #98A0A8;
+      --c-indigo: #6487B0; --c-gold: #C9A24B; --c-line: #33373C;
+      --c-shelf: #6B5A44; --c-card: #1F2226; --c-empty: #2A2E33;
+      --c-field: #24282D;
+    }
+    [data-theme="study"] {
+      --c-paper: #2B221B; --c-ink: #EDE4D6; --c-sub: #B3A38E;
+      --c-indigo: #9C7947; --c-gold: #CBA24B; --c-line: #4C3D30;
+      --c-shelf: #7A5C3E; --c-card: #352A21; --c-empty: #3C3025;
+      --c-field: #2E241C;
+    }
+    /* 書斎テーマ: 木質を感じる控えめな縦の濃淡(テクスチャ画像は使わない) */
+    [data-theme="study"] body {
+      background-image:
+        repeating-linear-gradient(90deg, rgba(255,255,255,.014) 0 2px, transparent 2px 9px),
+        linear-gradient(180deg, rgba(0,0,0,.16), rgba(0,0,0,0) 240px);
+    }
+
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    html, body { background: #F2F2ED; }
+    html, body { background: var(--c-paper); }
     button { cursor: pointer; font-family: inherit; }
     input, textarea, select { font-family: inherit; }
+    input[type="date"] { color-scheme: light dark; }
     #root { min-height: 100dvh; }
   </style>
 </head>
 <body>
   <div id="root"></div>
-  <script src="bundle.js?v=4"></script>
+  <script src="bundle.js?v=6"></script>
   <script>
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
