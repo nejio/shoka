@@ -26,19 +26,6 @@
       --c-shelf: #6B5A44; --c-card: #1F2226; --c-empty: #2A2E33;
       --c-field: #24282D;
     }
-    [data-theme="study"] {
-      --c-paper: #2B221B; --c-ink: #EDE4D6; --c-sub: #B3A38E;
-      --c-indigo: #9C7947; --c-gold: #CBA24B; --c-line: #4C3D30;
-      --c-shelf: #7A5C3E; --c-card: #352A21; --c-empty: #3C3025;
-      --c-field: #2E241C;
-    }
-    /* 書斎テーマ: 木質を感じる控えめな縦の濃淡(テクスチャ画像は使わない) */
-    [data-theme="study"] body {
-      background-image:
-        repeating-linear-gradient(90deg, rgba(255,255,255,.014) 0 2px, transparent 2px 9px),
-        linear-gradient(180deg, rgba(0,0,0,.16), rgba(0,0,0,0) 240px);
-    }
-
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     html, body { background: var(--c-paper); }
     button { cursor: pointer; font-family: inherit; }
@@ -49,7 +36,7 @@
 </head>
 <body>
   <div id="root"></div>
-  <script src="bundle.js?v=20"></script>
+  <script src="bundle.js?v=21"></script>
   <script>
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
