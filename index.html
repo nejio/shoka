@@ -12,31 +12,69 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="書架" />
+  <link rel="preload" href="fonts/shippori-mincho-jp-400.woff2" as="font" type="font/woff2" crossorigin />
   <style>
-    /* ===== テーマ(CSS変数) ===== */
+    /* ===== 明朝体(同梱・オフライン対応) ===== */
+    @font-face {
+      font-family: "Shippori Mincho";
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap; /* 読込中は端末の明朝で表示し、揃ったら差し替える */
+      src: url("fonts/shippori-mincho-jp-400.woff2") format("woff2");
+    }
+
+    /* ===== テーマ ===== */
     :root, [data-theme="light"] {
       --c-paper: #F2F2ED; --c-ink: #23272C; --c-sub: #6B7076;
       --c-indigo: #31465F; --c-gold: #B58B2A; --c-line: #D8D8D0;
       --c-shelf: #9C8668; --c-card: #FAFAF7; --c-empty: #E5E5DD;
       --c-field: #FFFFFF;
+      --texture: .055;   /* 和紙の質感の濃度 */
+      --texture-ink: #6B5A3E;
     }
     [data-theme="dark"] {
       --c-paper: #17191C; --c-ink: #E6E3DC; --c-sub: #98A0A8;
       --c-indigo: #6487B0; --c-gold: #C9A24B; --c-line: #33373C;
       --c-shelf: #6B5A44; --c-card: #1F2226; --c-empty: #2A2E33;
       --c-field: #24282D;
+      --texture: .05;
+      --texture-ink: #C9C3B4;
     }
+
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    html, body { background: var(--c-paper); }
+    html { background: var(--c-paper); }
+
+    /* 紙の地。SVGのノイズを極薄に敷く(画像ファイル不要・拡大しても劣化しない) */
+    body {
+      background-color: var(--c-paper);
+      background-image: url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'>\
+<filter id='n'>\
+<feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/>\
+<feColorMatrix type='saturate' values='0'/>\
+</filter>\
+<rect width='160' height='160' filter='url(%23n)' opacity='0.5'/>\
+</svg>");
+      background-repeat: repeat;
+      background-attachment: fixed;
+    }
+    /* 質感の濃度をテーマごとに調整する層 */
+    body::before {
+      content: "";
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background: var(--c-paper);
+      opacity: calc(1 - var(--texture));
+    }
+    #root { position: relative; z-index: 1; min-height: 100dvh; }
+
     button { cursor: pointer; font-family: inherit; }
     input, textarea, select { font-family: inherit; }
     input[type="date"] { color-scheme: light dark; }
-    #root { min-height: 100dvh; }
   </style>
 </head>
 <body>
   <div id="root"></div>
-  <script src="bundle.js?v=22"></script>
+  <script src="bundle.js?v=23"></script>
   <script>
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {

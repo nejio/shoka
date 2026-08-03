@@ -2,7 +2,7 @@
  * デプロイのたびに VERSION を index.html の bundle.js?v=N と同じ値に上げること。
  * (VERSIONが変わると新キャッシュを作成し、旧キャッシュは activate で削除される)
  */
-const VERSION = "v22";
+const VERSION = "v23";
 const CACHE = `shoka-${VERSION}`;
 
 const SHELL = [
@@ -39,6 +39,21 @@ self.addEventListener("fetch", (e) => {
   if (e.request.mode === "navigate") {
     e.respondWith(
       fetch(e.request).catch(() => caches.match("./index.html"))
+    );
+    return;
+  }
+
+  // フォントは実行時にキャッシュする(1.3MBあるので事前取得はせず、初回表示時に保存)
+  if (url.pathname.endsWith(".woff2")) {
+    e.respondWith(
+      caches.match(e.request).then((hit) =>
+        hit ||
+        fetch(e.request).then((res) => {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(e.request, copy));
+          return res;
+        })
+      )
     );
     return;
   }
