@@ -1,7 +1,7 @@
 /* 書架 Service Worker
  * デプロイのたびに VERSION を index.html の bundle.js?v=N と同じ値に上げること。
  */
-const VERSION = "v28";
+const VERSION = "v30";
 const CACHE = `shoka-${VERSION}`;
 
 // 事前取得は最小限にする。
