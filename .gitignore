@@ -1,0 +1,18 @@
+# 依存パッケージ(npm install で復元できる)
+node_modules/
+
+# 個人の設定(config.example.js を複製して作る)
+src/config.js
+
+# OS・エディタ
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# ログ
+npm-debug.log*
+*.log
+
+# 注意: bundle.js は除外しない。
+# GitHub Pages が配信する成果物なので、コミットする必要がある。
