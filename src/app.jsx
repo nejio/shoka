@@ -283,13 +283,22 @@ function Shell({ user }) {
         boxShadow: `0 2px 0 -1px ${C.gold}22`, // 細い副罫(和書の二重罫の見立て)
       }}>
         <h1 style={{ fontFamily: MINCHO, fontSize: 24, letterSpacing: 6, color: C.indigo, margin: 0, fontWeight: "normal" }}>書架</h1>
-        <button onClick={() => setShowSettings(true)} aria-label="設定" title="設定"
-          style={{
-            background: "none", border: "none", padding: 4, color: C.sub,
-            cursor: "pointer", display: "flex", alignItems: "center",
-          }}>
-          <IconGear size={21} />
-        </button>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <button onClick={() => setShowSearch(true)} aria-label="検索" title="検索"
+            style={{
+              background: "none", border: "none", padding: 4, color: C.sub,
+              cursor: "pointer", display: "flex", alignItems: "center",
+            }}>
+            <IconSearch size={21} />
+          </button>
+          <button onClick={() => setShowSettings(true)} aria-label="設定" title="設定"
+            style={{
+              background: "none", border: "none", padding: 4, color: C.sub,
+              cursor: "pointer", display: "flex", alignItems: "center",
+            }}>
+            <IconGear size={21} />
+          </button>
+        </div>
       </header>
 
       {(!online || pendingCount > 0) && (
