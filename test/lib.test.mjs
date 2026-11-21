@@ -152,8 +152,12 @@ test("calcReadingStreak: 進捗の日も読了の日も連続に数える", () =
   });
   const done = mkBook({ id: "f1", start: "2026-07-18", end: "2026-07-18" });
   assert.equal(calcReadingStreak([reading, done], "2026-07-20"), 3);
-  assert.equal(calcReadingStreak([done], "2026-07-20"), 0); // 当日活動なし
+  assert.equal(calcReadingStreak([done], "2026-07-20"), 0); // 昨日も今日も活動なし
   assert.equal(calcReadingStreak([], "2026-07-20"), 0);
+  // 今日まだ記録していなくても、昨日までの連続は保たれる
+  assert.equal(calcReadingStreak([reading, done], "2026-07-21"), 3);
+  // 一昨日で途切れていれば0
+  assert.equal(calcReadingStreak([reading, done], "2026-07-22"), 0);
 });
 
 /* ---- 統計の自動適応 ---- */

@@ -44,11 +44,16 @@ export function buildPagesByDay(books) {
   return m;
 }
 
-/** 「読書した日」(進捗 or 読了)の連続日数 */
+/**
+ * 「読書した日」(進捗 or 読了)の連続日数。
+ * 今日まだ記録していなくても、昨日までの連続は途切れていない扱いにする
+ * (朝に開いて「0日」と出て責められているように見えないように)。
+ */
 export function calcReadingStreak(books, today) {
   const dayMap = buildDayMap(books);
   let n = 0;
   const d = new Date(today + "T00:00:00");
+  if (!dayMap[isoLocal(d)]) d.setDate(d.getDate() - 1);
   while (dayMap[isoLocal(d)]) {
     n++;
     d.setDate(d.getDate() - 1);

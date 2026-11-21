@@ -200,6 +200,7 @@ function Shell({ user }) {
         return;
       }
       await addFinishedBook(user.uid, input, books);
+      flash(`「${input.title}」を読了に記録しました`);
     }),
     onAddReading: wrap(async (input) => {
       const dup = findActiveDuplicate(books, input);
@@ -238,9 +239,9 @@ function Shell({ user }) {
     onFinish: wrap(async (book, input) => {
       await finishBook(user.uid, book, input, books);
       const rel = relatedStacked(books, getTags(book), book.id);
-      if (rel.length) {
-        flash(`書斎に近い関心の本が${rel.length}冊あります(${rel[0].title}${rel.length > 1 ? " ほか" : ""})`);
-      }
+      flash(`「${book.title}」を読み終えました` + (rel.length
+        ? `。書斎に近い関心の本が${rel.length}冊あります(${rel[0].title}${rel.length > 1 ? " ほか" : ""})`
+        : ""));
     }),
     onDelete: wrap((id) => deleteBook(user.uid, id)),
     onChangeTag: wrap((id, tags) => updateTags(user.uid, id, tags)),
