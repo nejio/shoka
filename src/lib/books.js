@@ -15,6 +15,7 @@ import { lastPage } from "./stats.js";
 import { normalizeTags, getTags } from "./tags.js";
 import { normalizeHolding } from "./holding.js";
 import { progressUnit, progressMax, lastProgress, reachedEnd } from "./progress.js";
+import { editSessionProgress, removeSession } from "./sessions.js";
 import { writeBatch } from "firebase/firestore";
 
 const col = (uid) => collection(db, "users", uid, "books");
@@ -209,6 +210,20 @@ export async function updateSessionMemo(uid, book, index, memo) {
   if (text) sessions[index] = { ...sessions[index], memo: text };
   else { const { memo: _drop, ...rest } = sessions[index]; sessions[index] = rest; }
   await updateDoc(ref(uid, book.id), { sessions, updatedAt: serverTimestamp() });
+}
+
+/** 足あとの到達点を直す(index番目)。前後の記録の間に収まる値だけ受け付ける */
+export async function updateSessionProgress(uid, book, index, toPage) {
+  const r = editSessionProgress(book, index, toPage);
+  if (!r.ok) throw new Error(r.error);
+  await updateDoc(ref(uid, book.id), { sessions: r.value, updatedAt: serverTimestamp() });
+}
+
+/** 足あとを削除する(index番目。メモも一緒に消える) */
+export async function deleteSession(uid, book, index) {
+  const r = removeSession(book, index);
+  if (!r.ok) throw new Error(r.error);
+  await updateDoc(ref(uid, book.id), { sessions: r.value, updatedAt: serverTimestamp() });
 }
 
 /** 進捗の単位を変更(ページ ⇄ ％)。記録済みの足あとは消さない */

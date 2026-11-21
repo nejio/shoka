@@ -36,7 +36,13 @@ test("normalizeTags: trim・重複除去・上限5・空は未分類", () => {
 test("tagColor: 同じ名前なら常に同じ色・別名なら別色になりやすい", () => {
   assert.equal(tagColor("歴史"), tagColor("歴史"));
   const colors = new Set(STARTER_TAGS.map(tagColor));
-  assert.ok(colors.size >= 8, "初期12タグで十分に色が分散する");
+  assert.equal(colors.size, STARTER_TAGS.length, "大分類は1つも色が重ならない");
+});
+
+test("tagColor: 自作タグ・細分は従来どおり名前から決まる(既存の色が変わらない)", () => {
+  assert.equal(tagColor("自作タグ"), "#4A6B4F");           // 従来のハッシュ結果
+  assert.equal(tagColor("SF・ファンタジー"), "#7A3E2E");   // 従来のハッシュ結果
+  assert.equal(tagColor("constructor").startsWith("#"), true); // 組み込みの名前でも壊れない
 });
 
 test("tagsInUse: 使用数の多い順、複数タグも数える", () => {

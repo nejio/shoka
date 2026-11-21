@@ -88,6 +88,10 @@ export function ReadingCalendar({ books, onSelect }) {
                   else setPickDay({ date: ds, books: dayBooks, finished: fin });
                 }}
                 title={ds}
+                // 色が見分けにくい人・読み上げでも伝わるよう、日付と本・主題を文字でも持たせる
+                aria-label={dayBooks.length
+                  ? `${ds} ${dayBooks.map((b) => `${b.title}(${mainTag(b)}${fin.includes(b) ? "・読了" : ""})`).join("、")}`
+                  : ds}
                 style={{
                   width: CELL, height: CELL, borderRadius: 3, padding: 0,
                   border: future ? `1px dashed ${C.line}` : "none",

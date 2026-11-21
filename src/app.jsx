@@ -6,6 +6,7 @@ import {
   addSession, finishBook, deleteBook, startReading, updateCover,
   setAside, reviveToStack, updateNote, updateStackedAt,
   updateTags, renameTagEverywhere, deleteTagEverywhere, updateHolding, markAcquired, updateDates, updateRating, updateProgressUnit, updateSessionMemo,
+  updateSessionProgress, deleteSession,
 } from "./lib/books.js";
 import { lookupByIsbn, searchByTitle } from "./lib/biblioApi.js";
 import { findActiveDuplicate } from "./lib/dedupe.js";
@@ -256,6 +257,8 @@ function Shell({ user }) {
     onSaveRating: wrap((id, rating) => updateRating(user.uid, id, rating)),
     onSaveProgressUnit: wrap((id, unit) => updateProgressUnit(user.uid, id, unit)),
     onSaveSessionMemo: wrap((book, i, memo) => updateSessionMemo(user.uid, book, i, memo)),
+    onSaveSessionProgress: wrap((book, i, toPage) => updateSessionProgress(user.uid, book, i, toPage)),
+    onDeleteSession: wrap((book, i) => deleteSession(user.uid, book, i)),
     onFetchCover: wrap(async (book) => {
       let b = null;
       if (book.isbn) b = await lookupByIsbn(book.isbn);
@@ -364,7 +367,8 @@ function Shell({ user }) {
       <Detail book={sel} books={books} onClose={() => setSel(null)} onSelect={setSel} onDelete={handlers.onDelete} onChangeTag={handlers.onChangeTag} onStartReading={handlers.onStartReading} onFetchCover={handlers.onFetchCover}
         onSetAside={handlers.onSetAside} onRevive={handlers.onRevive} onSaveNote={handlers.onSaveNote}
         onSaveStackedAt={handlers.onSaveStackedAt} onSaveHolding={handlers.onSaveHolding}
-        onAcquire={handlers.onAcquire} onSaveDates={handlers.onSaveDates} onSaveRating={handlers.onSaveRating} onSaveProgressUnit={handlers.onSaveProgressUnit} onSaveSessionMemo={handlers.onSaveSessionMemo} />
+        onAcquire={handlers.onAcquire} onSaveDates={handlers.onSaveDates} onSaveRating={handlers.onSaveRating} onSaveProgressUnit={handlers.onSaveProgressUnit} onSaveSessionMemo={handlers.onSaveSessionMemo}
+        onSaveSessionProgress={handlers.onSaveSessionProgress} onDeleteSession={handlers.onDeleteSession} />
     </div>
   );
 }

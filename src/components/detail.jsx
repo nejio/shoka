@@ -9,7 +9,7 @@ import { formatProgress, isPercent } from "../lib/progress.js";
 import { getTags, mainTag } from "../lib/tags.js";
 import { fmtD } from "../lib/dates.js";
 
-export function Detail({ book, books, onClose, onSelect, onDelete, onChangeTag, onStartReading, onFetchCover, onSetAside, onRevive, onSaveNote, onSaveStackedAt, onSaveHolding, onAcquire, onSaveDates, onSaveRating, onSaveProgressUnit, onSaveSessionMemo }) {
+export function Detail({ book, books, onClose, onSelect, onDelete, onChangeTag, onStartReading, onFetchCover, onSetAside, onRevive, onSaveNote, onSaveStackedAt, onSaveHolding, onAcquire, onSaveDates, onSaveRating, onSaveProgressUnit, onSaveSessionMemo, onSaveSessionProgress, onDeleteSession }) {
   const [confirmDel, setConfirmDel] = useState(false);
   const [busy, setBusy] = useState(false);
   const [editingTag, setEditingTag] = useState(false);
@@ -25,7 +25,13 @@ export function Detail({ book, books, onClose, onSelect, onDelete, onChangeTag, 
   const [editingRating, setEditingRating] = useState(false);
   const [memoIdx, setMemoIdx] = useState(null);
   const [memoDraft, setMemoDraft] = useState("");
-  useEffect(() => { setConfirmDel(false); setEditingTag(false); setCoverMsg(""); setEditingNote(false); setEditingDate(false); setEditingDates(false); setEditingRating(false); setMemoIdx(null); setTagDraft(book ? getTags(book) : []); }, [book && book.id]);
+  // 足あとの到達点の修正・削除(打ち間違いを直せるように)
+  const [progIdx, setProgIdx] = useState(null);
+  const [progDraft, setProgDraft] = useState("");
+  const [progErr, setProgErr] = useState("");
+  const [progConfirmDel, setProgConfirmDel] = useState(false);
+  const closeProg = () => { setProgIdx(null); setProgErr(""); setProgConfirmDel(false); };
+  useEffect(() => { closeProg(); setConfirmDel(false); setEditingTag(false); setCoverMsg(""); setEditingNote(false); setEditingDate(false); setEditingDates(false); setEditingRating(false); setMemoIdx(null); setTagDraft(book ? getTags(book) : []); }, [book && book.id]);
   if (!book) return null;
 
   const sameTitle = books
@@ -289,7 +295,45 @@ export function Detail({ book, books, onClose, onSelect, onDelete, onChangeTag, 
                       <span style={{ color: C.gold, fontSize: 11 }}>
                         +{s.toPage - prev}{isPercent(book) ? "％" : "p"}
                       </span>
+                      <button onClick={() => {
+                          if (progIdx === i) return closeProg();
+                          closeProg(); setProgIdx(i); setProgDraft(String(s.toPage));
+                        }}
+                        style={{ marginLeft: "auto", background: "none", border: "none", padding: "2px 4px", fontSize: 11, color: C.sub, cursor: "pointer", textDecoration: "underline" }}>
+                        {progIdx === i ? "閉じる" : "直す"}
+                      </button>
                     </div>
+                    {progIdx === i && (
+                      <div style={{ marginLeft: 92, marginTop: 6, marginBottom: 4, display: "flex", flexDirection: "column", gap: 6 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                          <input type="number" inputMode="numeric" autoFocus value={progDraft}
+                            max={isPercent(book) ? 100 : undefined}
+                            onChange={(e) => { setProgDraft(e.target.value); setProgErr(""); }}
+                            style={{ width: 96, background: C.field, border: `1px solid ${C.line}`, borderRadius: 4, padding: "6px 8px", fontSize: 14, color: C.ink, fontFamily: GOTHIC }} />
+                          <span style={{ fontSize: 11.5, color: C.sub }}>{isPercent(book) ? "％まで読んだ" : "ページまで読んだ"}</span>
+                        </div>
+                        {progErr && <div style={{ fontSize: 11, color: "#A33" }}>{progErr}</div>}
+                        <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
+                          <button disabled={busy} onClick={async () => {
+                              setBusy(true); setProgErr("");
+                              try { await onSaveSessionProgress(book, i, progDraft); closeProg(); }
+                              catch (e) { setProgErr(e.message); }
+                              setBusy(false);
+                            }}
+                            style={{ padding: "6px 14px", borderRadius: 4, background: C.gold, color: "#fff", fontSize: 12, border: "none", cursor: "pointer" }}>保存</button>
+                          <button disabled={busy} onClick={async () => {
+                              if (!progConfirmDel) return setProgConfirmDel(true);
+                              setBusy(true); setProgErr("");
+                              try { await onDeleteSession(book, i); closeProg(); }
+                              catch (e) { setProgErr(e.message); }
+                              setBusy(false);
+                            }}
+                            style={{ padding: "6px 10px", borderRadius: 4, background: "none", border: "1px solid #8A3030", color: "#8A3030", fontSize: 11.5, cursor: "pointer" }}>
+                            {progConfirmDel ? (s.memo ? "メモも消えます。削除する" : "本当に削除する") : "この記録を削除"}
+                          </button>
+                        </div>
+                      </div>
+                    )}
                     {memoIdx === i ? (
                       <div style={{ marginLeft: 92, marginTop: 4, display: "flex", flexDirection: "column", gap: 6 }}>
                         <textarea autoFocus value={memoDraft} onChange={(e) => setMemoDraft(e.target.value)}
