@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { editSessionProgress, removeSession } from "../src/lib/sessions.js";
+import { editSessionProgress, removeSession, sameSessionAt } from "../src/lib/sessions.js";
 
 const book = (over = {}) => ({
   id: "b1", title: "本", pages: 300, status: "reading", holding: null,
@@ -73,4 +73,18 @@ test("removeSession: 最後の記録を消すと、次の記録はその手前�
   const r = removeSession(b, 2);
   assert.deepEqual(r.value.map((s) => s.toPage), [20, 80]);
   assert.equal(removeSession(b, 7).ok, false);
+});
+
+test("sameSessionAt: 同じ場所に同じ足あとがあれば真、ずれていれば偽", () => {
+  const shown = book();
+  assert.ok(sameSessionAt(shown, book(), 1));
+  // 別の端末で足あとが1件増えて、index 1 の中身が入れ替わった
+  const latest = book({ sessions: [shown.sessions[0], { date: "2026-07-01", toPage: 50 }, ...shown.sessions.slice(1)] });
+  assert.ok(sameSessionAt(shown, latest, 0));
+  assert.ok(!sameSessionAt(shown, latest, 1));
+  // 別の端末で到達点が直された
+  assert.ok(!sameSessionAt(shown, book({ sessions: [shown.sessions[0], { date: "2026-07-02", toPage: 90 }, shown.sessions[2]] }), 1));
+  // 範囲外・欠損
+  assert.ok(!sameSessionAt(shown, book({ sessions: [] }), 0));
+  assert.ok(!sameSessionAt(shown, null, 0));
 });

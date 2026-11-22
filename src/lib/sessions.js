@@ -41,6 +41,21 @@ export function editSessionProgress(book, index, input) {
 }
 
 /**
+ * 画面に出ていた本(shown)の index 番目の足あとが、最新の本(latest)でも
+ * 同じ場所に同じ内容で残っているかを調べる。
+ * 別の端末で足あとが増減・変更されていると、index がずれて別の足あとを
+ * 書き換えてしまうので、番号指定の編集はこの照合を通してから行う。
+ */
+export function sameSessionAt(shown, latest, index) {
+  const a = shown?.sessions?.[index];
+  const b = latest?.sessions?.[index];
+  return !!a && !!b && a.date === b.date && a.toPage === b.toPage;
+}
+
+/** 他の端末で変わっていたときの共通メッセージ */
+export const STALE_SESSION_MESSAGE = "別の端末で足あとが更新されました。画面を開き直してからやり直してください";
+
+/**
  * index 番目の足あとを取り除いた配列を返す(メモも一緒に消える)。
  * @returns { ok: true, value: sessions } | { ok: false, error }
  */
