@@ -1,6 +1,6 @@
 import { db, auth } from "./firebase.js";
 import {
-  collection, getDocs, writeBatch, doc, deleteDoc, query, limit,
+  collection, getDocs, writeBatch, doc, deleteDoc, query, limit, Timestamp, serverTimestamp,
 } from "firebase/firestore";
 import { deleteUser, reauthenticateWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { getPrefs } from "./prefs.js";
@@ -30,6 +30,33 @@ export async function exportAccountData(uid) {
     prefs,
     books,
   };
+}
+
+/**
+ * 取り込み(parseImport の items)を Firestore に追加する。450件ずつバッチで書く。
+ * id があればその id で、なければ新しい id で作る。createdAt が無い本は現在時刻にする
+ * (蔵書の購読が createdAt で並べるため、無いと一覧に出てこない)。
+ * @returns 書き込んだ冊数
+ */
+export async function importBooks(uid, items, onProgress = () => {}) {
+  if (!navigator.onLine) throw new Error("取り込みにはインターネット接続が必要です");
+  const colRef = collection(db, "users", uid, "books");
+  let done = 0;
+  for (let i = 0; i < items.length; i += BATCH_LIMIT) {
+    const batch = writeBatch(db);
+    items.slice(i, i + BATCH_LIMIT).forEach((it) => {
+      const r = it.id ? doc(colRef, it.id) : doc(colRef);
+      batch.set(r, {
+        ...it.value,
+        createdAt: it.createdAtMs ? Timestamp.fromMillis(it.createdAtMs) : serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+    });
+    await batch.commit();
+    done += Math.min(BATCH_LIMIT, items.length - i);
+    onProgress(done);
+  }
+  return done;
 }
 
 /** 書き出したデータをファイルとして保存させる */

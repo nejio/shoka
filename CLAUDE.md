@@ -11,7 +11,7 @@
 ### 変更を加えたら必ず実行する
 
 ```bash
-npm test          # 純粋関数のテスト(115件)。UIを変えても必ず通しておく
+npm test          # 純粋関数のテスト(126件)。UIを変えても必ず通しておく
 npm run build     # bundle.js を生成
 ```
 
@@ -51,6 +51,7 @@ src/
 │   ├─ tags.js          タグ分類(大分類10+形式2、細分93)
 │   ├─ progress.js      進捗の単位(ページ/％)
 │   ├─ sessions.js      足あとの修正・削除
+│   ├─ importData.js    書き出しJSONの取り込み(検証・整形)
 │   ├─ holding.js       保有状況(紙/電子/図書館/気になる本/手放した)
 │   ├─ memo.js          メモの集約と全体検索
 │   ├─ study.js         書斎(関心の地図)と知識の地図
@@ -60,7 +61,7 @@ src/
 │   ├─ dedupe.js        重複判定
 │   ├─ dates.js         日付(JSTずれ対策)
 │   ├─ prefs.js         ユーザー設定(Firestore)
-│   └─ account.js       書き出しとアカウント削除
+│   └─ account.js       書き出し・取り込み・アカウント削除
 └─ components/          画面。ロジックは持たせずlibを呼ぶ
 ```
 

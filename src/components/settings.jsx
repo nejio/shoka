@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { C, MINCHO, GOTHIC, THEMES } from "./common.jsx";
-import { exportAccountData, downloadJson, deleteAccount } from "../lib/account.js";
+import { exportAccountData, downloadJson, deleteAccount, importBooks } from "../lib/account.js";
+import { parseImport } from "../lib/importData.js";
 import { todayLocal } from "../lib/dates.js";
 import { BUILD, BUILD_LABEL } from "../version.js";
 
@@ -35,6 +36,39 @@ export function Settings({ user, books, theme, onChangeTheme, onSignOut, onClose
       setMsg(`${data.bookCount}冊を書き出しました`);
     } catch (e) {
       setMsg("書き出しに失敗しました: " + e.message);
+    }
+    setBusy(false);
+  };
+
+  // ---- 取り込み: ファイル選択 → 内容の確認 → 実行 ----
+  const [plan, setPlan] = useState(null); // parseImport の結果(確認待ち)
+  const [importMsg, setImportMsg] = useState("");
+
+  const pickFile = async (e) => {
+    const f = e.target.files && e.target.files[0];
+    e.target.value = ""; // 同じファイルをもう一度選べるように
+    setPlan(null); setImportMsg("");
+    if (!f) return;
+    if (f.size > 20 * 1024 * 1024) { setImportMsg("ファイルが大きすぎます(20MBまで)"); return; }
+    try {
+      const r = parseImport(await f.text(), new Set(books.map((b) => b.id)));
+      if (!r.ok) setImportMsg(r.error);
+      else if (!r.items.length) setImportMsg(`取り込める本がありませんでした(すでにある本 ${r.existing}冊、読めない本 ${r.rejected.length}冊)`);
+      else setPlan(r);
+    } catch (err) {
+      setImportMsg("ファイルを読み込めませんでした: " + err.message);
+    }
+  };
+
+  const doImport = async () => {
+    if (!plan) return;
+    setBusy(true); setImportMsg("取り込んでいます…");
+    try {
+      const n = await importBooks(user.uid, plan.items, (d) => setImportMsg(`取り込んでいます… ${d}/${plan.items.length}冊`));
+      setImportMsg(`${n}冊を取り込みました`);
+      setPlan(null);
+    } catch (err) {
+      setImportMsg("取り込みに失敗しました: " + err.message);
     }
     setBusy(false);
   };
@@ -106,6 +140,37 @@ export function Settings({ user, books, theme, onChangeTheme, onSignOut, onClose
           <button onClick={doExport} disabled={busy} style={btn}>
             すべての記録を書き出す
           </button>
+        </Section>
+
+        <Section
+          title="データの取り込み"
+          note="上の書き出しで保存したファイルから、本を追加します。すでにある本は飛ばし、上書きはしません。同じファイルを2回選んでも増えません。">
+          <label style={{ ...btn, display: "inline-block", opacity: busy ? 0.5 : 1 }}>
+            ファイルを選ぶ
+            <input type="file" accept="application/json,.json" onChange={pickFile} disabled={busy}
+              style={{ display: "none" }} />
+          </label>
+          {plan && (
+            <div style={{ marginTop: 12, padding: 12, borderRadius: 6, border: `1px solid ${C.line}`, background: C.card }}>
+              <div style={{ fontSize: 12.5, color: C.ink, lineHeight: 1.9 }}>
+                <strong>{plan.items.length}冊</strong>を追加します。
+                {plan.existing > 0 && <><br />すでにある本 {plan.existing}冊は飛ばします。</>}
+                {plan.rejected.length > 0 && <><br />読み取れない本 {plan.rejected.length}冊は取り込みません。</>}
+              </div>
+              {plan.rejected.length > 0 && (
+                <ul style={{ fontSize: 11, color: C.sub, marginTop: 6, paddingLeft: 18, lineHeight: 1.7 }}>
+                  {plan.rejected.slice(0, 5).map((x, i) => <li key={i}>{x.title}: {x.reason}</li>)}
+                  {plan.rejected.length > 5 && <li>ほか {plan.rejected.length - 5}冊</li>}
+                </ul>
+              )}
+              <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+                <button onClick={doImport} disabled={busy}
+                  style={{ ...btn, background: C.indigo, color: "#fff", border: "none" }}>取り込む</button>
+                <button onClick={() => { setPlan(null); setImportMsg(""); }} disabled={busy} style={btn}>やめる</button>
+              </div>
+            </div>
+          )}
+          {importMsg && <div style={{ fontSize: 12, color: C.sub, marginTop: 8 }}>{importMsg}</div>}
         </Section>
 
         <Section title="アカウントの削除">
