@@ -1,74 +1,129 @@
 import { useState } from "react";
-import { C, MINCHO, GOTHIC } from "./common.jsx";
+import { C, MINCHO, GOTHIC, tagColor, hexA } from "./common.jsx";
 
-/* ---- 各ページの意匠(小さなSVG。実画面の模式図) ---- */
+/* ---- 各ページの図 ----
+ * 実画面と同じ部品(色・マスの大きさ・金枠・下タブ・右下のボタン)で描いた縮小図。
+ * 色は実際のタグ色(tagColor)を使うので、テーマや色の固定に自動で追従する。
+ */
+
+// 実画面のカードと同じ枠
+const frame = {
+  width: "100%", maxWidth: 300, background: C.card, border: `1px solid ${C.line}`,
+  borderRadius: 6, padding: 12, textAlign: "left", position: "relative", overflow: "hidden",
+};
+
+/* 暦: 週が1行・月曜始まり。濃い=読了、薄い=読んだ日、金枠=今日 */
 function CalendarMotif() {
-  const colors = ["#4A6B4F", "#7A3E2E", "#31465F", "#B58B2A", "#3E6B6B"];
-  const cells = [];
-  for (let r = 0; r < 4; r++) {
-    for (let c = 0; c < 9; c++) {
-      const i = r * 9 + c;
-      const filled = [0, 1, 3, 4, 5, 7, 9, 10, 12, 13, 14, 16, 18, 19, 21, 22, 23, 25, 27, 28, 30, 31, 32].includes(i);
-      cells.push(
-        <rect key={i} x={c * 14} y={r * 14} width={11} height={11} rx={2.5}
-          fill={filled ? colors[i % colors.length] : C.empty}
-          opacity={filled ? (i % 3 === 0 ? 1 : 0.55) : 1} />
-      );
-    }
-  }
-  return <svg viewBox="0 0 125 55" width="200" height="88">{cells}</svg>;
-}
-
-function ShelfMotif() {
-  const books = [
-    [30, "#4A6B4F"], [42, "#31465F"], [36, "#7A3E2E"], [50, "#B58B2A"],
-    [38, "#3E6B6B"], [46, "#5B4A6B"], [33, "#8A6B3E"], [44, "#4A6B4F"],
+  const DOW = ["月", "火", "水", "木", "金", "土", "日"];
+  // F=読了(濃)  r=読んだ日(薄)  .=なし  x=未来
+  const ROWS = [
+    { label: `${new Date().getMonth() + 1}月`, cells: [["r", "歴史"], [".", ""], ["F", "小説"], ["r", "小説"], [".", ""], ["r", "技術・工学"], ["x", ""]], today: 5 },
+    { label: "", cells: [["F", "歴史"], ["r", "歴史"], [".", ""], ["r", "小説"], ["F", "小説"], [".", ""], ["r", "政治・社会"]] },
+    { label: "", cells: [[".", ""], ["r", "技術・工学"], ["F", "技術・工学"], [".", ""], ["r", "歴史"], ["F", "歴史"], [".", ""]] },
+    { label: "", cells: [["r", "小説"], [".", ""], [".", ""], ["F", "政治・社会"], ["r", "政治・社会"], [".", ""], ["r", "小説"]] },
   ];
-  let x = 4;
+  const CELL = 18;
   return (
-    <svg viewBox="0 0 120 60" width="200" height="100">
-      {books.map(([h, fill], i) => {
-        const el = <rect key={i} x={x} y={52 - h} width={11} height={h} rx={1.5} fill={fill} />;
-        x += 14;
-        return el;
-      })}
-      <rect x={0} y={52} width={120} height={4} rx={1} fill={C.shelf} />
-    </svg>
+    <div style={frame}>
+      <div style={{ display: "flex", gap: 3, paddingLeft: 34, marginBottom: 6 }}>
+        {DOW.map((d, i) => (
+          <div key={d} style={{ width: CELL, textAlign: "center", fontSize: 9.5, color: i >= 5 ? C.gold : C.sub, fontFamily: GOTHIC }}>{d}</div>
+        ))}
+      </div>
+      {ROWS.map((row, ri) => (
+        <div key={ri} style={{ display: "flex", gap: 3, alignItems: "center", marginBottom: 3 }}>
+          <div style={{ width: 28, fontSize: 10, color: C.sub, fontFamily: MINCHO, textAlign: "right", paddingRight: 3, flexShrink: 0 }}>{row.label}</div>
+          {row.cells.map(([kind, tag], ci) => {
+            let bg = C.empty;
+            if (kind === "F") bg = tagColor(tag);
+            else if (kind === "r") bg = hexA(tagColor(tag), 0.38);
+            else if (kind === "x") bg = "transparent";
+            return (
+              <div key={ci} style={{
+                width: CELL, height: CELL, borderRadius: 3, flexShrink: 0, background: bg,
+                border: kind === "x" ? `1px dashed ${C.line}` : "none",
+                outline: row.today === ci ? `2px solid ${C.gold}` : "none", outlineOffset: 1,
+              }} />
+            );
+          })}
+        </div>
+      ))}
+      <div style={{ fontSize: 9.5, color: C.sub, marginTop: 6 }}>濃いマス=読了した日 / 薄いマス=読んだ日 / 金枠=今日</div>
+    </div>
   );
 }
 
+/* 書斎: 主題ごとの群れ。点線の枠は「まだ持っていない気になる本」 */
 function MapMotif() {
   const groups = [
-    { color: "#4A6B4F", n: 4 },
-    { color: "#31465F", n: 3 },
-    { color: "#B58B2A", n: 2 },
+    { tag: "小説", n: 3, books: [0, 1, 2] },
+    { tag: "歴史", n: 2, books: [0, 1] },
+    { tag: "技術・工学", n: 2, books: [0], wanted: true },
   ];
-  let y = 4;
-  const out = [];
-  groups.forEach((g, gi) => {
-    out.push(<rect key={`l${gi}`} x={0} y={y + 4} width={7} height={7} rx={1.5} fill={g.color} />);
-    for (let i = 0; i < g.n; i++) {
-      out.push(
-        <rect key={`b${gi}-${i}`} x={13 + i * 20} y={y} width={15} height={22} rx={2}
-          fill={g.color} opacity={0.85} />
-      );
-    }
-    if (gi === 2) {
-      out.push(
-        <rect key="wanted" x={13 + g.n * 20} y={y} width={15} height={22} rx={2}
-          fill="none" stroke={C.sub} strokeWidth={1.2} strokeDasharray="3 2" />
-      );
-    }
-    y += 30;
-  });
-  return <svg viewBox="0 0 110 92" width="190" height="106">{out}</svg>;
+  return (
+    <div style={frame}>
+      {groups.map((g, gi) => (
+        <div key={g.tag} style={{ marginTop: gi ? 12 : 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, paddingBottom: 5, borderBottom: `1px solid ${C.line}` }}>
+            <span style={{ width: 10, height: 10, borderRadius: 2, background: tagColor(g.tag), flexShrink: 0 }} />
+            <span style={{ fontFamily: MINCHO, fontSize: 14, color: C.ink, letterSpacing: 1 }}>{g.tag}</span>
+            <span style={{ fontSize: 11, color: C.sub }}>{g.n}冊</span>
+          </div>
+          <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+            {g.books.map((i) => (
+              <div key={i} style={{
+                width: 26, height: 38, borderRadius: 2, background: tagColor(g.tag), opacity: 0.88,
+                borderLeft: `4px solid ${hexA("#000000", 0.18)}`,
+              }} />
+            ))}
+            {g.wanted && (
+              <div style={{ width: 26, height: 38, borderRadius: 2, border: `1.5px dashed ${C.sub}` }} />
+            )}
+          </div>
+        </div>
+      ))}
+      <div style={{ fontSize: 9.5, color: C.sub, marginTop: 10 }}>点線の枠=まだ持っていない、気になる本</div>
+    </div>
+  );
+}
+
+/* 記録の入口: 右下の金色の丸ボタンと下タブ(実画面の配置のまま) */
+function RecordMotif() {
+  const TABS = ["暦", "本棚", "書斎", "覚書", "読書"];
+  return (
+    <div style={{ ...frame, padding: 0, height: 150 }}>
+      {/* 画面の中身を思わせる薄い行 */}
+      <div style={{ padding: 12, display: "flex", flexDirection: "column", gap: 8 }}>
+        {[70, 52, 62].map((w, i) => (
+          <div key={i} style={{ height: 9, width: `${w}%`, borderRadius: 3, background: C.empty }} />
+        ))}
+      </div>
+      {/* 右下の「記録」ボタン */}
+      <div style={{
+        position: "absolute", right: 12, bottom: 48, width: 46, height: 46, borderRadius: 23,
+        background: C.gold, color: "#fff", fontFamily: MINCHO, fontSize: 12, letterSpacing: 1,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        boxShadow: "0 3px 10px rgba(0,0,0,.28)",
+      }}>記録</div>
+      {/* 下タブ */}
+      <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, display: "flex", borderTop: `1px solid ${C.line}`, background: C.card }}>
+        {TABS.map((t, i) => (
+          <div key={t} style={{
+            flex: 1, textAlign: "center", padding: "9px 0 8px", fontFamily: MINCHO, fontSize: 11.5,
+            color: i === 0 ? C.indigo : C.sub,
+            borderTop: i === 0 ? `2px solid ${C.gold}` : "2px solid transparent", marginTop: -1,
+          }}>{t}</div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 const PAGES = [
   {
     motif: <CalendarMotif />,
     title: "読んだ日が、色で残る",
-    body: "読了を記録すると、一日ぶんのマスがジャンルの色で埋まります。\n続けるほど、モザイクがあなたの一年になります。",
+    body: "読んだ日のマスが、ジャンルの色で埋まります。\n続けるほど、モザイクがあなたの一年になります。",
   },
   {
     motif: <MapMotif />,
@@ -76,7 +131,7 @@ const PAGES = [
     body: "買っただけの本は「書斎」に積まれ、関心の地図をつくります。\n読まなくても構いません。積まれた本の群れそのものが、\nいまのあなたの関心のかたちです。",
   },
   {
-    motif: <ShelfMotif />,
+    motif: <RecordMotif />,
     title: "記録は、右下から",
     body: "画面右下の「記録」ボタンひとつで、\n読書の進捗も、新しい本の追加もできます。\nバーコードを読めば、書名も著者も自動で入ります。",
   },
@@ -107,7 +162,7 @@ export function Intro({ onDone }) {
         flex: 1, display: "flex", flexDirection: "column", alignItems: "center",
         justifyContent: "center", textAlign: "center", gap: 28,
       }}>
-        <div style={{ opacity: 0.95 }}>{page.motif}</div>
+        <div style={{ width: "100%", display: "flex", justifyContent: "center" }}>{page.motif}</div>
         <div>
           <div style={{ fontFamily: MINCHO, fontSize: 21, color: C.ink, letterSpacing: 2, lineHeight: 1.6 }}>
             {page.title}
