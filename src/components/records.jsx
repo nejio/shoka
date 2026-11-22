@@ -240,7 +240,7 @@ function QuickAdd({ books, onAddFinished, onAddReading, onAddStacked, open, onCl
 
   if (!open) return null;
 
-  // 記録タブの見出し(読書中/読了)と用語を揃える
+  // 読書タブの見出し(読書中/読了)と用語を揃える
   const STATUS = [
     ["stacked", "積読"],
     ["reading", "読書中"],
@@ -463,7 +463,7 @@ function QuickAdd({ books, onAddFinished, onAddReading, onAddStacked, open, onCl
   );
 }
 
-/* ---- 記録タブ本体 ---- */
+/* ---- 読書タブ本体 ---- */
 export function RecordTab({ books, onSelect, onAddFinished, onAddReading, onAddStacked, onProgress, onFinish, addOpen, onCloseAdd }) {
   const [q, setQ] = useState("");
   const [tagF, setTagF] = useState(null);

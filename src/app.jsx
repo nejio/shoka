@@ -184,7 +184,7 @@ function Shell({ user }) {
 
   const pendingCount = books.filter((b) => b.pending).length;
   // ラベルは5つ並べても窮屈にならない長さに揃える
-  const tabs = [["stats", "暦"], ["shelf", "本棚"], ["study", "書斎"], ["memo", "覚書"], ["list", "記録"]];
+  const tabs = [["stats", "暦"], ["shelf", "本棚"], ["study", "書斎"], ["memo", "覚書"], ["list", "読書"]];
 
   const wrap = (fn) => async (...args) => {
     setErr("");

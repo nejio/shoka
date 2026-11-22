@@ -66,7 +66,8 @@ export function RecordFab({ books, onProgress, onAddBook }) {
   return (
     <>
       {/* FAB(下タブの上に浮かせる) */}
-      <button onClick={() => setOpen(true)} aria-label="記録する"
+      {/* 読書中の本がなければシートに見せるものが無いので、追加フォームへ直行する */}
+      <button onClick={() => (reading.length === 0 ? onAddBook() : setOpen(true))} aria-label="記録する"
         style={{
           position: "fixed", right: 16, bottom: "calc(72px + env(safe-area-inset-bottom))", zIndex: 40,
           width: 56, height: 56, borderRadius: 28, border: "none", cursor: "pointer",

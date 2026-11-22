@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { C, MINCHO, tagColor, EmptyState } from "./common.jsx";
+import { C, MINCHO, GOTHIC, tagColor, EmptyState } from "./common.jsx";
 import { mainTag, tagsInUse } from "../lib/tags.js";
 import { buildPagesByDay, calcReadingStreak, chooseStatsFocus, readingDaysIn } from "../lib/stats.js";
 import { ReadingCalendar } from "./calendar.jsx";
@@ -17,6 +17,13 @@ export function StatsView({ books, onSelect }) {
   const setPrefPersist = (v) => {
     setPref(v);
     try { localStorage.setItem("shoka:stats", v); } catch {}
+  };
+  const [more, setMore] = useState(() => {
+    try { return localStorage.getItem("shoka:statsMore") === "1"; } catch { return false; }
+  });
+  const setMorePersist = (v) => {
+    setMore(v);
+    try { localStorage.setItem("shoka:statsMore", v ? "1" : "0"); } catch {}
   };
   const focus = pref === "auto" ? chooseStatsFocus(books, TODAY) : pref;
 
@@ -163,9 +170,19 @@ export function StatsView({ books, onSelect }) {
 
       {bookOfDay && <BookOfTheDay book={bookOfDay} onSelect={onSelect} />}
 
-      {focus === "books" ? [monthlyChart, pagesChart] : [pagesChart, monthlyChart]}
+      {/* グラフ類は初期状態では畳む。まず暦・数字・今日の一冊だけが目に入るように */}
+      <button onClick={() => setMorePersist(!more)} aria-expanded={more}
+        style={{
+          ...box, padding: "10px 12px", display: "flex", justifyContent: "space-between",
+          alignItems: "center", cursor: "pointer", fontFamily: GOTHIC, fontSize: 12.5, color: C.indigo,
+        }}>
+        <span>くわしい集計(グラフ・関心の変遷)</span>
+        <span style={{ color: C.sub, fontSize: 11 }}>{more ? "閉じる" : "開く"}</span>
+      </button>
 
-      <div style={{ ...box, padding: 12 }}>
+      {more && (focus === "books" ? [monthlyChart, pagesChart] : [pagesChart, monthlyChart])}
+
+      {more && <div style={{ ...box, padding: 12 }}>
         <div style={{ fontSize: 12, color: C.sub, marginBottom: 8 }}>関心の変遷(四半期ごとの主タグ構成)</div>
         {qData.map((h) => (
           <div key={h.label} style={{ marginBottom: 10 }}>
@@ -180,7 +197,7 @@ export function StatsView({ books, onSelect }) {
             </div>
           </div>
         ))}
-      </div>
+      </div>}
     </div>
   );
 }
